@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-import pathlib
-import datetime
-import re
 import quopri
 import tkinter as tk
 from tkinter import ttk, scrolledtext, filedialog, messagebox
-
+import json
+import re
+import datetime
+import pathlib
 
 def decode_quoted_printable(s):
     return quopri.decodestring(s).decode('utf-8', errors='replace')
@@ -63,10 +63,7 @@ def export_messages_to_json(contacts: dict, out_path: pathlib.Path):
     date_iso — дата в формате ISO 8601 (YYYY-MM-DDTHH:MM:SS) если возможно распарсить,
     иначе пустая строка.
     """
-    import json
-    import re
-    import datetime
-    import pathlib
+
 
     # регулярка для даты вида 2018.4.27.5.46.16 или 2018.04.27.05.46.16
     date_re = re.compile(r'^\s*([0-9]{4})\.([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})')
@@ -79,7 +76,8 @@ def export_messages_to_json(contacts: dict, out_path: pathlib.Path):
             return ''
         y, mo, d, H, M, S = map(int, m.groups())
         try:
-            return datetime.datetime(y, mo, d, H, M, S).isoformat()
+            dt = datetime.datetime(y, mo, d, H, M, S) + datetime.timedelta(hours=3)
+            return dt.isoformat()
         except Exception:
             return ''
 
@@ -103,6 +101,9 @@ def export_messages_to_json(contacts: dict, out_path: pathlib.Path):
 
 
 def format_date(datestr):
+    """
+    Возвращает строку вида '[H:MM DD.MM.YYYY]' с добавлением +3 часа к парсируемой дате.
+    """
     if not datestr:
         return ''
     m = re.match(r'^\s*([0-9]{4})\.([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})', datestr)
@@ -110,16 +111,15 @@ def format_date(datestr):
         return ''
     y, mo, d, H, M, S = map(int, m.groups())
     try:
-        dt = datetime.datetime(y, mo, d, H, M, S)
+        dt = datetime.datetime(y, mo, d, H, M, S) + datetime.timedelta(hours=3)
     except ValueError:
         return ''
     return f'[{dt.hour}:{dt.minute:02d} {dt.day:02d}.{dt.month:02d}.{dt.year}]'
 
 def collect_messages(folder: pathlib.Path):
-    import pathlib as _pathlib, re as _re, datetime as _datetime
     script_dir = folder
     contacts = {}
-    date_re = _re.compile(r'^\s*([0-9]{4})\.([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})')
+    date_re = re.compile(r'^\s*([0-9]{4})\.([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})\.([0-9]{1,2})')
     for path in sorted(script_dir.glob('*.vmg')):
         try:
             tel, texts = parse_vmg(path)
@@ -130,7 +130,7 @@ def collect_messages(folder: pathlib.Path):
                     if m:
                         try:
                             y, mo, d, H, M, S = map(int, m.groups())
-                            dt = _datetime.datetime(y, mo, d, H, M, S)
+                            dt = datetime.datetime(y, mo, d, H, M, S)
                         except Exception:
                             dt = None
                 contacts.setdefault(tel, []).append((dt, date_str or '', txt, path.name))
