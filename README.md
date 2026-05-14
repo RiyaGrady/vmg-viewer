@@ -35,3 +35,67 @@ VMG Viewer — лёгкая кроссплатформенная утилита 
 Экспортирует структуру вида: { "<номер>": [ { "date_raw": "...", "date_iso": "...", "text": "...", "source_file": "..." }, ... ], ... }
 Для каждой записи сохраняются: исходная строка даты, дата в формате ISO‑8601 (если удалось распарсить), декодированный текст сообщения и имя исходного .vmg‑файла.
 JSON записывается в выбранный пользователем файл с кодировкой UTF-8 и красивым отступом (ensure_ascii=False, indent=2) — русские символы читаются корректно.
+
+
+ENGLISH
+## VMG Viewer  
+
+**VMG Viewer** is a lightweight, cross‑platform Python utility for viewing SMS messages exported in the *.vmg* format (commonly from Samsung phones). The project is minimalist, has no external dependencies, and is intended for quick viewing, searching, and further processing of SMS archives.
+
+### Running the program  
+
+* A pre‑built Windows executable is included in the repository: **`vmg_viewer.exe`**.  
+* Alternatively, run the source script:  
+
+```bash
+python3 vmg_viewer.py
+```
+
+### How to use  
+
+1. In the application click **«Выбрать папку с sms»** and point to the directory containing the *.vmg* files.  
+2. The program reads all *.vmg* files in the selected folder (by default, the folder where the script resides).  
+
+### Features  
+
+| Feature | Details |
+|---------|---------|
+| **File handling** | Reads every *.vmg* file in the chosen directory. |
+| **Encoding support** | Correctly processes **QUOTED‑PRINTABLE** and supports UTF‑8, CP1251, and Latin‑1 encodings. |
+| **Data extraction** | Retrieves the contact number, date, and message text; handles folded lines. |
+| **GUI** | Simple Tkinter interface: folder selection, contact list with message counts, chronological view of conversations with timestamps. |
+| **Export** | Exports all current conversations to a JSON file, grouped by contact. |
+| **Zero external dependencies** | Works on any system with Python 3. |
+
+### Why it’s useful  
+
+* **No third‑party libraries** – runs everywhere Python 3 is available.  
+* Handy for quickly browsing and analysing messages from legacy devices.  
+* Code is structured to make it easy to add CSV/JSON export, full‑text search, or date/number filters.
+
+### Interface overview  
+
+* **Top row** – buttons for setting the path to the *.vmg* SMS files and for exporting SMS to JSON.  
+* **Left panel** – list of contacts with the number of messages per contact.  
+* **Right panel** – the conversation of the selected contact, sorted by date, with a header showing the time/date for each message.
+
+### JSON export  
+
+Press the **«Экспорт sms в JSON»** button to generate a JSON file with the following structure:
+
+```json
+{
+  "<phone_number>": [
+    {
+      "date_raw": "...",          // original date string from the .vmg file
+      "date_iso": "...",          // ISO‑8601 representation (if parsing succeeded)
+      "text": "...",              // decoded message text
+      "source_file": "..."        // name of the source .vmg file
+    },
+    …
+  ],
+  …
+}
+```
+
+* The JSON is written to the user‑specified file using **UTF‑8** encoding with pretty indentation (`ensure_ascii=False, indent=2`), so Cyrillic characters are displayed correctly.
